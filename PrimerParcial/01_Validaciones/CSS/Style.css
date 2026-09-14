@@ -62,71 +62,82 @@ footer {
     text-decoration: underline;
 }
 
-/* Regla general para el formulario de registro */
-form.registro-asistencia {
-  background-color: #f9f9f9;
+/* 1. Regla general para el formulario de registro */
+.formulario_registro {
+  background-color: #ffffff;
   border-radius: 8px;
-  padding: 20px;
-  max-width: 400px;
-  margin: 20px auto;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  padding: 25px;
+  max-width: 450px;
+  margin: 30px auto;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 10px;
 }
 
-/* Regla para el input del registro */
-form.registro-asistencia input {
-  padding: 10px;
+/* 2. Regla general para los inputs del registro */
+.formulario_registro input {
+  padding: 12px;
   border: 1px solid #ccc;
-  border-radius: 4px;
+  border-radius: 5px;
   font-size: 16px;
-  transition: border-color 0.3s;
+  outline: none;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* Regla para el button del registro */
-form.registro-asistencia button {
-  background-color: #0056b3;
+.formulario_registro input:focus {
+  border-color: #0056b3;
+  box-shadow: 0 0 5px rgba(0, 86, 179, 0.3);
+}
+
+/* 3. Regla para el button del registro */
+.formulario_registro button {
+  background-color: #6c0036; /* Color guinda, muy al estilo IPN */
   color: white;
   padding: 12px;
   border: none;
-  border-radius: 4px;
+  border-radius: 5px;
   cursor: pointer;
   font-weight: bold;
   font-size: 16px;
+  margin-top: 15px;
   transition: background-color 0.3s, transform 0.1s;
 }
 
-/* Regla para el hover del botón de registro */
-form.registro-asistencia button:hover {
-  background-color: #004494;
+/* 4. Regla para el hover del botón de registro */
+.formulario_registro button:hover {
+  background-color: #4a0024;
   transform: translateY(-2px);
 }
 
-/* Regla para cuando un input sea inválido (Usando pseudo-clases de validación HTML5) */
-form.registro-asistencia input:invalid:not(:placeholder-shown) {
-  border-color: #d9534f;
-  background-color: #fdf0f0;
+/* 5. Regla para cuando un input sea inválido */
+.formulario_registro input:invalid:not(:placeholder-shown) {
+  border-color: #dc3545;
+  background-color: #fff8f8;
 }
 
-/*Regla para cuando falle el registro (Asumiendo que agregas una clase .error mediante JS) */
-.mensaje-fallo {
-  color: #721c24;
-  background-color: #f8d7da;
-  border: 1px solid #f5c6cb;
-  padding: 10px;
-  border-radius: 4px;
-  font-size: 14px;
-  text-align: center;
+/* 6. Regla para cuando falle el registro */
+.formulario_registro.registro-fallido {
+  border: 2px solid #dc3545;
+  animation: sacudir 0.3s ease-in-out;
 }
 
-/*Regla para cuando el registro sea exitoso */
+/* Animación extra para el fallo */
+@keyframes sacudir {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+/* 7. Regla para cuando el registro sea exitoso */
 .mensaje-exito {
   color: #155724;
   background-color: #d4edda;
   border: 1px solid #c3e6cb;
-  padding: 10px;
-  border-radius: 4px;
-  font-size: 14px;
+  padding: 15px;
+  border-radius: 5px;
+  font-weight: bold;
   text-align: center;
+  margin: 20px auto;
+  max-width: 450px;
 }
