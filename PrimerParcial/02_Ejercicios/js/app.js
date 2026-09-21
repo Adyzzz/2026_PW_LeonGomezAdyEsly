@@ -4,9 +4,21 @@ const talleres = [
   { nombre: 'Diseño de Bases de Datos', instructor: 'Ing. Ana Torres', cupo: 20, inscritos: 20 },
   { nombre: 'Desarrollo Web con JS', instructor: 'Ing. María López', cupo: 25, inscritos: 10 },
 ];
+const tbody = document.querySelector('#tabla-talleres tbody');
 
 function pintarTabla(){
     // Debe de obtener la tabla y llenarla con los datos de Talleres
+    const filasHTML = talleres.map((t) => {
+        return `
+            <tr>
+                <td>${t.nombre}</td>
+                <td>${t.instructor}</td>
+                <td>${t.cupo}</td>
+                <td>${t.inscritos}</td>
+            </tr>
+        `;
+    }).join('');
+    tbody.innerHTML = filasHTML;
 }
 
 const formArreglos = document.getElementById('form-arreglo');
@@ -46,3 +58,5 @@ formArreglos.addEventListener('submit', (evento) => {
 
     resultadoArreglos.textContent = resultado;
 });
+
+pintarTabla();
