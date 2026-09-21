@@ -23,6 +23,24 @@ formArreglos.addEventListener('submit', (evento) => {
         case 'forEach' :
             resultado = talleres.map((t) => `- ${t.nombre} (${t.inscritos}/${t.cupo})`).join('\n')
         break;
+
+        case 'map' :
+            resultado = talleres.map((t) => t.nombre).join(' - ');
+        break;
+
+        case 'filter' :
+            const llenos = talleres.filter((t) => t.inscritos >= t.cupo);
+            resultado = llenos.map((t) => t.nombre).join(' - ');
+        break;
+
+        case 'find' :
+            const pTaller = talleres.find((t) => t.instructor === 'Ing. María López');
+            resultado = "Taller: " + pTaller.nombre;
+        break;
+
+        case 'reduce' :
+            const totalInscritos = talleres.reduce((totalInscritos, t) => totalInscritos + t.inscritos, 0 );
+            resultado = "Total de alumnos: " + totalInscritos
     }
 
 
