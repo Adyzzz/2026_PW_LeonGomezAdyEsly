@@ -53,8 +53,13 @@ formArreglos.addEventListener('submit', (evento) => {
         case 'reduce' :
             const totalInscritos = talleres.reduce((totalInscritos, t) => totalInscritos + t.inscritos, 0 );
             resultado = "Total de alumnos: " + totalInscritos
-    }
+        break;
 
+        case 'map-filter' :
+            const disponibles = talleres.filter((t) => t.inscritos < t.cupo).map((t) => t.nombre);
+            resultado = disponibles.join(' - ')
+        break;
+    }
 
     resultadoArreglos.textContent = resultado;
 });
