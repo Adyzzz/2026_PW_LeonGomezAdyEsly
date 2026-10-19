@@ -28,3 +28,22 @@ async function obtenerUsuario(req, res) {
         res.status(500).json({error: error.message});
     }
 }
+
+async function CrearUsuario(req, res) {
+    const {nombre, correo, contrasena, boleta, rol} = req.body;
+    if(!nombre ||!correo ||!contrasena ||!boleta){
+        return res.status(400).json({error : `nombre, correo, contraseña y boleta son obligatorios, favor de verificar los datos`})
+    }
+    if(validarCorreo(correo)) return res.status(400).json({error : `El correo no tiene formato valido`});
+    if(!validarBoleta(boleta)) return res.status(400).json({error: `La boleta debe de tener 10 dígitos`});
+    if(!validarContraseña(contrasena)) res.status(400).json({error: `LA contraseña no es valida`});
+
+    try{
+        const contrasenaHash = await bcrypt.hash(contrasena, 10);
+        const usuario = await usuariosModel.crear({nombre, correo, contrasenaHash, boleta, rol});
+    }catch(error){
+        if(esduplicado(error)) return res.status(409).json({error : `Ya existe un usuario con esa boleta o ese correo`});
+        res.status(500).json({error: error.message});
+    }
+
+}
