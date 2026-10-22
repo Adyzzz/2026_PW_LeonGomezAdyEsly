@@ -1,8 +1,8 @@
-const bcrypt = require('bcryptjs');
+import { hash } from 'bcryptjs';
 //necesitamos al modelo
-const usuariosModel = require('../Modelo/usuarios');
+import { listar, obtenerPorId, crear, actualizar, eliminar } from '../Modelo/usuarios';
 
-const {validarCorreo, calidarBoleta, validarContrasena, validarBoleta} = require('../validaciones')
+import { validarCorreo, calidarBoleta, validarContrasena, validarBoleta } from '../validaciones';
 
 //que pasa si el correo y la boleta se duplica
 function esDuplicado(error){
@@ -12,7 +12,7 @@ function esDuplicado(error){
 
 async function listarUsuarios(req , res) {
     try{
-        const usuarios = await usuariosModel.listar();
+        const usuarios = await listar();
         res.json(usuarios);
     }catch(error){
         res.status(500).json({error: error.message})
@@ -22,7 +22,7 @@ async function listarUsuarios(req , res) {
 
 async function obtenerUsuario(req, res) {
     try{
-        const usuario = await usuariosModel.obtenerPorId(req.params.id);
+        const usuario = await obtenerPorId(req.params.id);
         if(!usuario) return res.status(404).json({error: 'Usuario no encontrado'});
         res.json(usuario);
     }catch(error){
@@ -40,8 +40,8 @@ async function crearUsuario(req, res) {
     if(!validarContrasena(contrasena)) return res.status(400).json({error: 'La contraseña debe tener al menos 8 caracteres'});
 
     try{
-        const contrasenaHash = await bcrypt.hash(contrasena, 10);
-        const usuario = await usuariosModel.crear({nombre, correo, contrasenaHash, boleta, rol});
+        const contrasenaHash = await hash(contrasena, 10);
+        const usuario = await crear({nombre, correo, contrasenaHash, boleta, rol});
 
         res.status(201).json(usuario);
     }catch(error){
@@ -62,7 +62,7 @@ async function actualizarUsuario(req, res) {
     }
     //faltaria agregar una validacion mas para el nombre
     try{
-        const usuario = await usuariosModel.actualizar(req.params.id, {nombre, correo, rol});
+        const usuario = await actualizar(req.params.id, {nombre, correo, rol});
         if(!usuario) return res.status(404).json({error: 'Usuario no encontrado'});
         res.status(401).json(usuario);
     }catch(error){
@@ -74,7 +74,7 @@ async function actualizarUsuario(req, res) {
 
 async function eliminarUsuario(req, res) {
     try{
-        const eliminado = await usuariosModel.eliminar(req.params.id);
+        const eliminado = await eliminar(req.params.id);
         if(!eliminado) return res.status(404).json({error: 'Usuario no encontrado'});
         res.status(204).send();
     }catch(error){
@@ -82,4 +82,4 @@ async function eliminarUsuario(req, res) {
     }
 }
 
-module.exports = {listarUsuarios, obtenerUsuario, crearUsuario, actualizarUsuario, eliminarUsuario};
+export default {listarUsuarios, obtenerUsuario, crearUsuario, actualizarUsuario, eliminarUsuario};

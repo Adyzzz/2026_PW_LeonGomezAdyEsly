@@ -1,8 +1,8 @@
-const express = require('express')
+import express, { json } from 'express';
 
 const app = express();
 
-app.use(express.json());
+app.use(json());
 
 
 const PORT = 4000;
@@ -21,6 +21,17 @@ app.post('/eco', (req, res) => {
     }
     res.status(201).json({eco:texto})
 });
+
+app.get('/usuarios', usuarios.listarUsuarios);
+app.get('/usuarios/:id', usuarios.obtenerUsuario);
+app.get('/talleres', talleres.listarTalleres);
+app.get('/talleres/:id', talleres.consultarPorTaller);
+app.post('/talleres/registrarse', talleres.registrarseEnUnTaller);
+app.post('/usuarios', usuarios.crearUsuario);
+app.post('/asistencias', asistencias.registrarAsistenciaEnElTaller);
+app.get('/asistencias', asistencias.consultarListaDeAsistencias);
+app.put('/usuarios/:id', usuarios.actualizarUsuario);
+app.delete('/usuarios/:id', usuarios.eliminarUsuario);
 
 app.listen(PORT, () => {
     console.log(`Servidor escuchando en el puerto: ${PORT}`);
