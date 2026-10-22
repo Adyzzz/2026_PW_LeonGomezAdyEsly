@@ -1,21 +1,20 @@
-//Validar contraseña correo y boleta
+//vamos atener funciones que se encargan de validar correo, boleta y contraseña
 
-// Expresiones regulares
+//wiii mas tarea siiiii
 
-//Correo
+//aqui va funcion de correo
 function validarCorreo(correo){
-    
+
 }
 
-//Boleta
-function validaBoleta(boleta){
-    
+//aqui va funcion de boleta
+function validarBoleta(boleta){
+
 }
 
-//Contraseña
-function validarContraseña(contraseña){
-    if(typeof contraseña !== 'sring') return false;
-    return contraseña.length >= 10;
+function validarContrasena(contrasena){
+    if (typeof contrasena !== 'string') return false;
+    return contrasena.length >= 8;
 }
 
-module.exports = {validarContraseña, validarContraseña, validaBoleta};
+export default {validarCorreo, validarBoleta, validarContrasena};
