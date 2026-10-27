@@ -1,5 +1,5 @@
 import Menu from '../components/Menu'
-import '../styles/styles.css';
+import '../styles/style.css';
 
 
 export default function App({Component, pageProps}) {
