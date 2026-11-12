@@ -52,6 +52,44 @@ export default function Perfil() {
     }
   }
 
+  const manejarRegistro = async (e) => {
+    e.preventDefault(); 
+    setError(''); 
+
+    // VALIDACIONES
+    if (nombre.trim().length < 3) {
+      setError("El nombre debe tener al menos 3 letras.");
+      return; 
+    }
+    
+    if (boleta.trim().length !== 10 || isNaN(boleta)) {
+      setError("La boleta debe tener exactamente 10 números.");
+      return;
+    }
+
+    // ENVÍO AL BACKEND
+    try {
+      // Ajusta '/api/usuarios' o '/api/asistencias' según tu ruta exacta
+      const respuesta = await fetch('/api/usuarios', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ nombre, boleta })
+      });
+
+      if (respuesta.ok) {
+        alert("¡Registro exitoso!");
+        nombre('');
+        setBoleta('');
+      } else {
+        setError("Error al guardar en la base de datos.");
+      }
+    } catch (err) {
+      setError("Error de conexión con el servidor.");
+    }
+  };
+
   const nombre = alumno ? alumno.nombre : nombreInscrito;
 
   return (
@@ -62,6 +100,36 @@ export default function Perfil() {
         <button type="submit" disabled={cargando}>{cargando ? 'Buscando...' : 'Ver mi perfil'}</button>
       </form>
       {error && <p className="error">{error}</p>}
+
+      <form onSubmit={manejarRegistro}>
+      {error && <p style={{ color: 'red', fontWeight: 'bold' }}>{error}</p>}
+      
+      <div style={{ marginBottom: '10px' }}>
+        <label>Nombre: </label>
+        <input 
+          type="text" 
+          placeholder="Tu nombre"
+          value={nombre}
+          onChange={(e) => nombre(e.target.value)}
+          required
+        />
+      </div>
+
+      <div style={{ marginBottom: '10px' }}>
+        <label>Boleta: </label>
+        <input 
+          type="text" 
+          placeholder="Ej: 2026090099"
+          value={boleta}
+          onChange={(e) => setBoleta(e.target.value)}
+          required
+        />
+      </div>
+      
+      <button type="submit" style={{ padding: '5px 15px', cursor: 'pointer' }}>
+        Registrar
+      </button>
+    </form>
       
       {buscada && (
         <>

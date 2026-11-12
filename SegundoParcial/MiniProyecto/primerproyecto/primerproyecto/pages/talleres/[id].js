@@ -41,6 +41,7 @@ export default function DetalleTaller() {
   const ocupados = asistencias.length;
   const libres = taller ? Math.max(0, taller.cupo - ocupados) : 0;
   const lleno = taller !== null && libres === 0;
+  const regexNombre = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;  
 
   async function inscribir(e) {
     e.preventDefault();
@@ -51,9 +52,32 @@ export default function DetalleTaller() {
     const boletaLimpia = boleta.trim();
 
     if (!nombreLimpio) return setErrorForm('Escribe tu nombre.');
+    if (nombreLimpio.length > 50) {
+    return setErrorForm('El nombre no puede superar los 50 caracteres.');
+    }
+    if (!regexNombre.test(nombreLimpio)) {
+    return setErrorForm('El nombre no debe contener números ni caracteres especiales.');
+    }
+
     if (!validarBoleta(boletaLimpia)) return setErrorForm('La boleta debe tener 10 dígitos.');
     if (asistencias.some((a) => a.boleta === boletaLimpia)) return setErrorForm('Esa boleta ya está inscrita en este taller.');
     if (lleno) return setErrorForm('El taller ya no tiene lugares.');
+
+    if (!nombreLimpio.includes(' ')) {
+    return setErrorForm('Por favor ingresa al menos un nombre y un apellido.');
+    }
+
+// 2. Detectar spam de letras idénticas consecutivas (ej: "aaaaa" o "jjjjj")
+    const letrasRepetidas = /(.)\1{3,}/; 
+    if (letrasRepetidas.test(nombreLimpio)) {
+      return setErrorForm('El nombre contiene secuencias de letras inválidas o repetidas.');
+    }
+
+// 3. Detectar exceso de consonantes seguidas sin sentido (ej: "sdfghjkl")
+    const excesoConsonantes = /[bcdfghjklmnpqrstvwxyzBCDFGHJKLMNPQRSTVWXYZ]{5,}/;
+    if (excesoConsonantes.test(nombreLimpio)) {
+      return setErrorForm('El nombre parece no ser válido (demasiadas consonantes juntas).');
+    }
 
     setEnviando(true);
     try {
