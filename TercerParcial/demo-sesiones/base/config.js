@@ -11,7 +11,7 @@ module.exports = {
 
   // true: cada petición reinicia el reloj de la expiración (la sesión vence por inactividad).
   // false: vence a la hora fija, aunque el usuario siga usando la página.
-  rolling: false,
+  rolling: true,
 
   // true: el JavaScript de la página NO puede leer la cookie (document.cookie no la muestra).
   httpOnly: true,

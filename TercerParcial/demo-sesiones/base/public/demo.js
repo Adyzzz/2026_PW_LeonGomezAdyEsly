@@ -1,6 +1,7 @@
 // La página solo hace fetch a la API. El navegador manda la cookie solo (misma página, mismo servidor).
 const $ = (id) => document.getElementById(id);
 
+// Esta funcion envia las peticiones fetch y devuelve una respuesta solo cuando el body existe/está y devuelve el estatus
 async function llamar(metodo, url, cuerpo) {
   const opciones = { method: metodo, headers: {} };
   if (cuerpo) {
@@ -13,6 +14,7 @@ async function llamar(metodo, url, cuerpo) {
   return { status: respuesta.status, datos };
 }
 
+// Como dice en la 2da linea, crea 'li', posterior a eso usa el textContent para el JSON y prepend() para poner lo nuevo hasta arriba
 function anotar(metodo, url, status, datos) {
   const li = document.createElement('li');
   const clase = status < 300 ? 'ok' : status === 401 ? 'e401' : status === 403 ? 'e403' : 'error';
@@ -23,6 +25,7 @@ function anotar(metodo, url, status, datos) {
   $('bitacora').prepend(li);
 }
 
+// pinta el estado en verde o rojo consultando el metodo GET para /api/sesion, y mostrando el document.cookie en el #
 async function refrescarEstado() {
   const { status, datos } = await llamar('GET', '/api/sesion');
   const estado = $('estado');
@@ -36,6 +39,8 @@ async function refrescarEstado() {
   $('cookie-js').textContent = document.cookie || '(vacío)';
 }
 
+
+// Esta usa de nuevo el metodo get (linea 2) y limpia el <tbody>, ademas construye las filas de la tabla, en resumen, " refresca las sesiones "
 async function refrescarSesiones() {
   const { datos: respuesta } = await llamar('GET', '/api/diagnostico/sesiones');
   const datos = respuesta ? respuesta.sesiones : [];
@@ -63,6 +68,7 @@ async function refrescarSesiones() {
   }
 }
 
+// Autocompleta <usuario>12345 al cambiar el <select>, intercepta el submit del formulario con preventDefault() y conecta todos los botones con data-url.
 async function refrescarTodo() {
   await refrescarEstado();
   await refrescarSesiones();
@@ -92,6 +98,7 @@ for (const boton of document.querySelectorAll('[data-url]')) {
 $('btn-refrescar').addEventListener('click', refrescarTodo);
 $('btn-sesiones').addEventListener('click', refrescarSesiones);
 
+// Hace un nuevo GET  para mostrarlo en config y ejecutar el refrescarTodo()
 llamar('GET', '/api/config').then(({ datos }) => {
   $('config').textContent = JSON.stringify(datos, null, 2);
 });

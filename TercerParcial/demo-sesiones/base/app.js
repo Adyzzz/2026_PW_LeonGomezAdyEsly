@@ -6,7 +6,7 @@ const session = require('express-session');
 const MySQLStore = require('express-mysql-session')(session);
 const { crearModeloUsuarios } = require('./modelos/usuarios.modelo');
 const { config } = require('dotenv');
-const { escape } = require('querystring');
+const { noDeprecation } = require('process');
 
 const NOMBRE_COOKIE = 'connect.sid';
 
@@ -23,7 +23,6 @@ function crearApp(config, pool){
   app.use(express.json());
   //primero debemos de obtener el modelo de la bd
   const usuarios = crearModeloUsuarios(pool);
-}
 
   //aqui nosotros debemos de identificar la sesión sera por tabla en bd, o la sesión sera una cookie en memoria del navegador, o es una mezcla, sesion en memoria de servidor y por tabla en bd y cookie en navegador y bd
   const almacen = config.almacen === 'memoria' 
@@ -42,8 +41,8 @@ app.use(
     saveUninitialized : false,
     rolling : config.rolling || false,
     cookie : {
-      maxAge : config.maxAge || 1000 * 60 * 60 * 24,
-      httpOnly : config.httpOnly || true,
+      maxAge : config.maxAgeMs || 1000 * 60 * 60 * 24,
+      httpOnly : config.httpOnly ?? true,
       sameSite : config.sameSite || 'lax',
       secure : config.secure || false,
     },
@@ -52,13 +51,13 @@ app.use(
 
 //necesitamos visualizar el id de la sesion para compararla en la pantalla.
 
-const cortoId = (id) => (id ? `${id.slice(0, 8)}...`: null);
+const idCorto = (id) => (id ? `${id.slice(0, 8)}...`: null);
 
 //nosotros estamos ocupando un middleware, el cual es el que se encarga de comunicar el back y el front, para ello nosotros debemos de obtener la sesión a partir de express, pero en cada petición debemos de devolver la sesión, para ello el atributo rolling, la extiende y aunque le hayamos dato false, no se puede confiar en que la expire, para ello debemos de identificarla y validarla en sus diferentes momentos
 
 function vencida(sesion){
   const desde = config.rolling ? sesion.ultimoUso : sesion.creada;
-  return Date.now() - desde > config.maxAge;
+  return Date.now() - desde > config.maxAgeMs;
 }
 
 //mandar un 401 no se quien eres 
@@ -70,98 +69,106 @@ function requiereSesion(req, res, next){
     });
   }
   if(!req.session.usuario){
-    return res.status(401).json({error: '401 No has iniciaciado sesión con la cuenta correcta.'})
+    return res.status(401).json({error: '401 No has iniciaciado sesión  con la cuenta correcta.'})
   }
   req.session.ultimoUso = Date.now();
   next();
 }
 
-function requiereRol (rol) {
+function requiereRol(rol){
   return (req, res, next) => {
     if(req.session.usuario.rol !== rol){
-      return res.json({error:`403. eres ${req.session.usuario.usuario}, pero esta ruta es sola para ${rol}`})
+      return res.status(403).json({error: `403. Eres ${req.session.usuario.usuario}, pero esta ruta es solo para ${rol}`});
     }
     next();
   };
 }
 
-// Vamos a empezar a configurar las rutas 
-app.get('/api/config', (req, res) => res.congif)
+//vamos a empezar a configurar las rutas
 
-// Vamos a crar una ruta para un perfil visitant y otener su sesion a patir de una cookie
+app.get('/api/config', (req, res) => res.json(config));
 
-app.post('/api/visita', (req, res) => {
+//vamos a crear una ruta para un perfil visitante y obtener su sesion a partir de una cookie
+
+app.post('/api/visita', (req, res)=>{
   if(!req.session) return res.json({error: 'No tiene una sesión asociada'});
   req.session.visitas = (req.session.visitas || 0)+1;
-  res.json({visitas: req.session.visitas, session: idCorto(req.sessionID)})
+  res.json({visitas: req.session.visitas, sesion: idCorto(req.sessionID)});
 });
 
-app.post('/api/login', async(req, res, next) => {
+app.post('/api/login', async(req, res, next)=>{
   try{
     const {usuario, contrasena} = req.body || {};
-    const datos = await usuario.verificar(usuario, contrasena);
-    if(!datos) return res.status(401).json({error: 'Usuario o contraseña incorrecta'});
+    const datos = await usuarios.verificar(usuario, contrasena);
+    if (!datos) return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
 
-    // Debemos de crear la sesión 
-    const antes = req.session.visitas !== undefined? idCorto(req.sessionID) : null;
+    //debemos de crear la sesion
+    const antes = req.session.visitas !== undefined ? idCorto(req.sessionID) : null;
     const visitas = req.session.visitas || 0;
 
-    // Vamos a guardar
-    const guardar = () => {
+    //que vamos a guardar
+    const guardar = () =>{
       req.session.usuario = datos;
       req.session.visitas = visitas;
       req.session.creada = Date.now();
       req.session.ultimoUso = Date.now();
-      req.session.save((error) => {
+      req.session.save((error)=>{
         if(error) return next(error);
         res.json({usuario: datos, sesionAntes : antes, sesionDespues : idCorto(req.sessionID)});
-      }) ;
+      });
     };
 
     if(config.regenerarAlEntrar){
-      // Vamos a regenerar la sesion
-      req.session.regenerate((error) => (error ? next(error) : guardar()));
+      //vamos a regenerar la sesión
+      req.session.regenerate((error) => (error ? next(error): guardar()));
     }else{
       guardar();
     }
-
   }catch(error){
     next(error);
   }
 });
 
-app.post('/api/logout', (req, res, next) => {
-  req.session.destroy((error) => {
+app.post('/api/logout', (req, res, next)=>{
+  req.session.destroy((error) =>{
     res.clearCookie(NOMBRE_COOKIE);
-    res.json({mensaje: 'Sesion cerrada'})
+    res.json({mensaje : 'Sesión cerrada'});
   });
 });
 
-app.get('/api/sesion', requiereSesion, (req, res) => {
+app.get('/api/sesion', requiereSesion, (req, res)=>{
   const desde = config.rolling ? req.session.ultimoUso : req.session.creada;
   res.json({
-    usuario : req.session.usuario,
-    sesion : idCorto(sessionID),
-    expiraEnSegundos : Math.max(0, Math.round((desde + config.maxAge - Date.now())/1000)),
+    usuario: req.session.usuario,
+    sesion: idCorto(req.sessionID),
+    expiraEnSegundos: Math.max(0, Math.round((desde + config.maxAgeMs - Date.now())/1000)),
   });
 });
 
-app.get('/api/perfil', requiereSesion, (req, res) =>{
-  req.session.visitas = (req.session.visitas || 0 ) + 1;
-  res.json({mensaje : 'Hola ${req.session.usuario.nombre}, rol ${req.session.usuario.rol}, visitas : ${req.session.visitas}'});
+app.get('/api/perfil', requiereSesion, (req, res)=>{
+  req.session.visitas = (req.session.visitas || 0) + 1;
+    res.json({
+    mensaje: `Hola, ${req.session.usuario.nombre}`,
+    rol: req.session.usuario.rol,
+    visitas: req.session.visitas
+  });
 });
 
-// Para verificar que la sesion tiene el comportamiento deseado es necesario realizar una pruebas unitara al código
-app.get('/api/diagnostico/sesiones', async(req, res, next) => {
+app.get('/api/admin/reporte', requiereSesion, requiereRol('admin'), (req, res) => {
+  res.json({ reporte: 'Talleres: 3 · Inscritos: 57 · Cupo libre: 18' });
+});
+
+//para verificar que la sesion tiene el comportamiento deseado es necesario realizar una prueba unitaria al codigo
+app.get('/api/diagnostico/sesiones', async(req, res, next) =>{
   try{
     const sesiones = await todasLasSesiones(almacen);
-    const lista = Object.entries(sesiones || {}).map(([id, s]) => ({
+    const lista = Object.entries(sesiones || {}).map(([id, s])=>({
       sesion : idCorto(id),
-      esLaTuya : id === req.sesionesID,
-      usuario : s.usuario ? s.usuario.usuario : 'sin iniciar sesion',
+      esLaTuya : id === req.sessionID,
+      usuario : s.usuario ? s.usuario.usuario : 'sin iniciar sesión',
       visitas : s.visitas || 0,
       expira : s.cookie && s.cookie.expires,
-    }));  
+    }));
     res.json({almacen : config.almacen, sesiones : lista});
   }catch(error){
     next(error);
@@ -170,15 +177,21 @@ app.get('/api/diagnostico/sesiones', async(req, res, next) => {
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/api/', (req, res) => escape.status(404).json({error: 'Ruta no encontrada'}));
+app.use('/api', (req, res) => res.status(404).json({error : 'Ruta no encontrada'}));
 
-app.use((error, req, res, next) => {
+app.use((error, req, res, next)=>{
   console.error(error);
-  res.status(500).json({error: 'Error en el servidor'});
-
+  res.status(500).json({error : 'Error en el servidor'});
 });
+
 
 return app;
 
 
-module.exports = {crearApp, NOMBRE_COOKIE };
+}
+
+module.exports = {crearApp, NOMBRE_COOKIE};
+
+//primera tarea Deberan de desarrollar una infografia sobre el uso de jwt para el inicio de sesion para el dia domingo 15 de noviembre
+
+//segunda tarea deberan de desarrollar la implmenetación del codigo para realizar la autenticación y pruebas de sesiones conforme al documento para el archivo demo.js se entrega en vivo y en directo 
