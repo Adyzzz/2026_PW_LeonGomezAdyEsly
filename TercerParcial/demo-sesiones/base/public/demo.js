@@ -103,3 +103,7 @@ llamar('GET', '/api/config').then(({ datos }) => {
   $('config').textContent = JSON.stringify(datos, null, 2);
 });
 refrescarTodo();
+
+
+
+// La presentaciòn de progra web se basara en tener montado el servido, se pasará al frente y se preguntara código. 3 preguntas por integrante de donde sea
